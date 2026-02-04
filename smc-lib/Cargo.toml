@@ -5,6 +5,7 @@ edition = "2024"
 description = "Library for interacting with Apple SMC keys"
 license.workspace = true
 repository.workspace = true
+readme = "README.md"
 
 keywords = ["smc", "macOS", "apple", "hardware"]
 categories = ["os::macos-apis", "hardware-support"]

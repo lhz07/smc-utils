@@ -300,3 +300,25 @@ impl Iterator for ValIter<'_> {
         }
     }
 }
+
+#[test]
+#[ignore = "the key may not exist"]
+fn basic_example() -> Result<(), Box<dyn std::error::Error>> {
+    // Initialize SMC connection
+    let smc = IOService::init()?;
+
+    // Read a key (e.g. battery temperature)
+    let key = b"TB0T";
+    let value = smc.read_key(key).map_err(err_str)?;
+    println!("{}", value);
+
+    // Get key information
+    let key_info = smc.get_key_info(key).map_err(err_str)?;
+    println!(
+        "data type: {}, size: {}",
+        String::from_utf8_lossy(&key_info.data_type.to_be_bytes()).trim(),
+        key_info.data_size
+    );
+
+    Ok(())
+}

@@ -13,19 +13,21 @@ pub struct CliArgs {
 
 #[derive(Subcommand)]
 pub enum Commands {
-    /// List all smc keys and values
+    /// List all SMC keys and their values
     List,
-    /// Read the smc value of the key
+    /// Read a single SMC key and display its value
     Read {
-        #[arg(help = "smc key name")]
+        #[arg(help = "Four-character SMC key name (e.g. TB0T, TCHP)")]
         key: String,
     },
 
-    /// Write smc value
+    /// Write a value to a SMC key
     Write {
-        #[arg(help = "smc key name")]
+        #[arg(help = "Four-character SMC key name (e.g. TB0T, TCHP)")]
         key: String,
-        #[arg(help = "smc value in hex, for 0x031000, write 031000")]
+        #[arg(
+            help = "Hexadecimal value to write (without `0x` prefix), for 0x031000, write 031000"
+        )]
         value: String,
     },
 }
