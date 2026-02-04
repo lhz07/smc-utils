@@ -1,0 +1,17 @@
+[package]
+name = "smc-cli"
+version = "0.1.0"
+edition = "2024"
+description = "Command-line tool for interacting with Apple SMC keys"
+license.workspace = true
+repository.workspace = true
+categories = ["command-line-utilities"]
+keywords = ["smc", "macOS", "cli", "apple", "hardware"]
+
+[[bin]]
+name = "smc"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4.5.56",  features = ["derive"] }
+smc-lib = { version = "0.1.0", path = "../smc-lib"}
