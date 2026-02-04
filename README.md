@@ -26,13 +26,8 @@ A collection of utilities for interacting with Apple's SMC (System Management Co
 
 ### Using the CLI
 
-```bash
-# List all SMC keys
-cargo run --bin smc -- list
+See the [CLI README](./smc-cli/README.md).
 
-# Read a specific key
-cargo run --bin smc -- read FNum
+### Using the lib
 
-# Write to a key
-cargo run --bin smc -- write TestKey 0102
-```
+See the [lib README](./smc-lib/README.md).

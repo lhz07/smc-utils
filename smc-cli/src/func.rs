@@ -1,6 +1,6 @@
 use smc_lib::{
-    SMC_BYTES_LEN,
     io::{IOService, err_str},
+    structs::SMC_BYTES_LEN,
 };
 use std::borrow::Cow;
 

@@ -50,16 +50,87 @@ impl std::fmt::Display for ValError {
 }
 
 impl SMCVal {
+    /// Returns the valid portion of the byte data.
+    ///
+    /// SMC values have a declared size that may be less than the full 32-byte buffer.
+    /// This method returns only the bytes that contain actual data.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use smc_lib::io::IOService;
+    ///
+    /// let smc = IOService::init().unwrap();
+    /// let val = smc.read_key(b"TB0T").unwrap();
+    /// let bytes = val.valid_bytes();
+    /// println!("Value bytes: {:02x?}", bytes);
+    /// ```
     pub fn valid_bytes(&self) -> &[u8] {
         let size = std::cmp::min(self.data_size as usize, self.bytes.len());
         &self.bytes[..size]
     }
+
+    /// Returns the key name as a string.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use smc_lib::io::IOService;
+    ///
+    /// let smc = IOService::init().unwrap();
+    /// let val = smc.read_key(b"TB0T").unwrap();
+    /// println!("Key name: {}", val.key_str());
+    /// ```
     pub fn key_str(&self) -> Cow<'_, str> {
         String::from_utf8_lossy(&self.key)
     }
+
+    /// Returns the data type code as a string.
+    ///
+    /// For type name that is shorter than 4 bytes, the string will include a tail space.
+    /// This is designed intentionally, to keep the name length same.
+    ///
+    /// See [AsahiLinux Docs](https://asahilinux.org/docs/hw/soc/smc) for common data types.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use smc_lib::io::IOService;
+    ///
+    /// let smc = IOService::init().unwrap();
+    /// let val = smc.read_key(b"TB0T").unwrap();
+    /// println!("Data type: {}", val.data_type_str());
+    /// ```
     pub fn data_type_str(&self) -> Cow<'_, str> {
         String::from_utf8_lossy(&self.data_type)
     }
+
+    /// Parses the raw bytes into a typed value.
+    ///
+    /// This method attempts to interpret the raw byte data based on the
+    /// SMC data type code. Returns `None` if the data type is not recognized.
+    ///
+    /// Some data type is not supported, because it is unknown or not meaningful.
+    ///
+    /// # Returns
+    ///
+    /// - `Some(SmcValue)` - The parsed value
+    /// - `None` - If the data type is not supported
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use smc_lib::io::IOService;
+    ///
+    /// let smc = IOService::init().unwrap();
+    /// let val = smc.read_key(b"TB0T").unwrap();
+    ///
+    /// if let Some(parsed) = val.data_value() {
+    ///     println!("Parsed temperature: {}", parsed);
+    /// } else {
+    ///     println!("Not supported data type: {}", val.data_type_str());
+    /// }
+    /// ```
     pub fn data_value(&self) -> Option<SmcValue> {
         let type_code = SmcTypeCode::from_bytes(&self.data_type)?;
         let val = parse_smc_value(type_code, &self.bytes);
@@ -67,19 +138,55 @@ impl SMCVal {
     }
 }
 
+/// Represents a parsed SMC value in its typed form.
+///
+/// SMC values can be various types including integers, floats, booleans,
+/// and strings. This enum provides type-safe access to the parsed data.
+///
+/// `flt` is represented as both little endian and big endian number,
+/// because we are not sure.
+///
+/// According to [AsahiLinux Docs](https://asahilinux.org/docs/hw/soc/smc),
+/// > flt: a 32-bit single-precision IEEE float. In at least one case, the byte order is actually reversed.
+///
+/// # Example
+///
+/// ```no_run
+/// use smc_lib::io::IOService;
+/// use smc_lib::value::SmcValue;
+///
+/// let smc = IOService::init().unwrap();
+/// let val = smc.read_key(b"TB0T").unwrap();
+///
+/// if let Some(SmcValue::F32 { le, be }) = val.data_value() {
+///     println!("battery temperature: {}", le);
+/// }
+/// ```
 #[derive(Debug, Clone, PartialEq)]
 pub enum SmcValue {
+    /// Floating point value (both little and big endian interpretations)
     F32 { le: f32, be: f32 },
+    /// Unsigned 8-bit integer
     U8(u8),
+    /// Signed 8-bit integer
     I8(i8),
+    /// Signed 16-bit integer
     I16(i16),
+    /// Unsigned 16-bit integer
     U16(u16),
+    /// Unsigned 32-bit integer
     U32(u32),
+    /// Signed 32-bit integer
     I32(i32),
+    /// Signed 64-bit integer
     I64(i64),
+    /// Unsigned 64-bit integer
     U64(u64),
+    /// Boolean value
     Bool(bool),
+    /// Maybe ascii string
     Chars(String),
+    /// Fixed-point value (48.16 format)
     Ioft48_16(u64),
 }
 
@@ -116,7 +223,7 @@ impl std::fmt::Display for SmcValue {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum SmcTypeCode {
+enum SmcTypeCode {
     Flt,
     Ui8,
     Si8,
