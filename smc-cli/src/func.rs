@@ -6,7 +6,7 @@ use std::borrow::Cow;
 
 pub fn list() -> Result<(), Cow<'static, str>> {
     let service = IOService::init()?;
-    let val_iter = service.values_iter().unwrap();
+    let val_iter = service.values_iter().map_err(err_str)?;
     for v in val_iter {
         match v {
             Ok(v) => {

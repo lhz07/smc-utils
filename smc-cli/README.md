@@ -22,7 +22,7 @@ cargo install smc-cli
 
 ```bash
 git clone https://github.com/lhz07/smc-utils.git
-cd smc-cli
+cd smc-utils/smc-cli
 cargo build --release
 ```
 
